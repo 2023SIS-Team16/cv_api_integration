@@ -1,0 +1,12 @@
+name: sis_cv_api
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - pandas
+  - pillow
+  - flask
+  - flask-cors
+  - pip
+  - pip:
+    - opencv-python
