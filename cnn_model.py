@@ -71,6 +71,8 @@ def build_model():
         tf.keras.layers.Dense(26, activation='softmax')
     ])
 
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
     return model
 
 train_labels, train_images = form_datasets(train_dataframe['label'].to_numpy(), train_dataframe.drop('label', axis=1).to_numpy())
@@ -83,4 +85,29 @@ train_generator, test_generator = getImageGenerators(train_labels, train_images,
 
 model = build_model()
 
-history = model.fit(train_generator, epochs=20, validation_data=test_generator)
+epochs = 20
+history = model.fit(train_generator, epochs=epochs, validation_data=test_generator)
+
+print(model.summary())
+
+accuracy = history.history['accuracy']
+val_accuracy = history.history['val_accuracy']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+epochs_range = range(epochs)
+
+plt.plot(epochs_range, accuracy, 'g', label='Training Accuracy')
+plt.plot(epochs_range, val_accuracy, 'b', label='Validation Accuracy')
+plt.legend()
+plt.figure()
+plt.title('Training / Validation Accuracy')
+
+plt.savefig('training_validation_accuracy.png')
+
+plt.plot(epochs_range, loss, 'r', label='Training Loss')
+plt.plot(epochs_range, val_loss, 'y', label='Validation Loss')
+plt.title('Training / Validation Loss')
+plt.legend()
+plt.figure()
+plt.savefig('training_validation_loss.png')
