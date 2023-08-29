@@ -60,6 +60,19 @@ def getImageGenerators(training_labels, training_images, test_labels, test_image
 
     return train_generator, test_generator
 
+def build_model():
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+        tf.keras.layers.MaxPool2D((2, 2)),
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPool2D((2, 2)),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(512, activation='relu'),
+        tf.keras.layers.Dense(26, activation='softmax')
+    ])
+
+    return model
+
 train_labels, train_images = form_datasets(train_dataframe['label'].to_numpy(), train_dataframe.drop('label', axis=1).to_numpy())
 test_labels, test_images = form_datasets(test_dataframe['label'].to_numpy(), test_dataframe.drop('label', axis=1).to_numpy())
 
@@ -67,3 +80,7 @@ train_images = np.expand_dims(train_images, axis=3) # Expanding Dimension for Co
 test_images = np.expand_dims(test_images, axis=3) # Expanding Dimension for Convolutional Layer
 
 train_generator, test_generator = getImageGenerators(train_labels, train_images, test_labels, test_images)
+
+model = build_model()
+
+history = model.fit(train_generator, epochs=20, validation_data=test_generator)
