@@ -39,11 +39,31 @@ def form_datasets(labels, images):
 
     return np.array(output_labels).astype(float), np.array(output_images).astype(float)
 
+def getImageGenerators(training_labels, training_images, test_labels, test_images):
+    datagen = ImageDataGenerator(
+        rescale=1./255,
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        horizontal_flip=True,
+        zoom_range=0.2,
+        fill_mode='nearest'
+    )
+
+    test_datagen = ImageDataGenerator(
+        rescale=1./255
+    )
+
+    train_generator = datagen.flow(x=training_images, y=training_labels, batch_size=32)
+    test_generator = test_datagen.flow(x=test_images, y=test_labels, batch_size=32)
+
+    return train_generator, test_generator
+
 train_labels, train_images = form_datasets(train_dataframe['label'].to_numpy(), train_dataframe.drop('label', axis=1).to_numpy())
 test_labels, test_images = form_datasets(test_dataframe['label'].to_numpy(), test_dataframe.drop('label', axis=1).to_numpy())
 
 train_images = np.expand_dims(train_images, axis=3) # Expanding Dimension for Convolutional Layer
 test_images = np.expand_dims(test_images, axis=3) # Expanding Dimension for Convolutional Layer
 
-def getImageGenerator(training_labels, training_images, test_labels, test_images):
-    pass
+train_generator, test_generator = getImageGenerators(train_labels, train_images, test_labels, test_images)
