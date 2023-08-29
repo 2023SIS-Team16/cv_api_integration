@@ -9,6 +9,8 @@ dependencies:
   - flask-cors
   - tensorflow
   - matplotlib
+  - cudatoolkit
+  - cudnn
   - pip
   - pip:
     - opencv-python
