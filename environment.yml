@@ -16,3 +16,7 @@ dependencies:
     - opencv-python
     - mediapipe
     - ipykernel
+    - websockets
+    - asyncio
+    - flask
+    - flask_socketio
