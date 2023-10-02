@@ -109,7 +109,7 @@ class Transformer(keras.Model):
         mask = tf.math.logical_not(tf.math.equal(target_output, 59))
         loss = self.compiled_loss(one_hot, preds, sample_weight=mask)
 
-        edit_distance = tf.edit_distance(tf.cast(tf.argmax(preds, axis=2), tf.int32), target_output, normalize=False)
+        edit_distance = tf.edit_distance(tf.sparse.from_dense(target), tf.sparse.from_dense(tf.cast(tf.argmax(preds, axis=2), tf.int32)))
         edit_distance = tf.reduce_mean(edit_distance)
 
         self.accuracy_metric.update_state(edit_distance)
