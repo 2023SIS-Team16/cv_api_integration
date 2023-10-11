@@ -4,33 +4,33 @@ from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
 import numpy as np
 
-im = cv.imread('/Users/jon/development/university/sis/test_images/post_test_2.jpg')
-img = cv.cvtColor(im, cv.COLOR_BGR2RGB)
+# im = cv.imread('/Users/jon/development/university/sis/test_images/post_test_2.jpg')
+# img = cv.cvtColor(im, cv.COLOR_BGR2RGB)
 
-processor = LandmarkProcessor(
-    pose_landmarker="/Users/jon/development/university/sis/models/pose_landmarker_full.task",
-    hand_landmarker="/Users/jon/development/university/sis/models/hand_landmarker.task"
-)
+# processor = LandmarkProcessor(
+#     pose_landmarker="/Users/jon/development/university/sis/models/pose_landmarker_full.task",
+#     hand_landmarker="/Users/jon/development/university/sis/models/hand_landmarker.task"
+# )
 
-# def draw_pose_landmarks_on_image(rgb_image, detection_result):
-#   pose_landmarks_list = detection_result.pose_landmarks
-#   annotated_image = np.copy(rgb_image)
+def draw_pose_landmarks_on_image(rgb_image, detection_result):
+  pose_landmarks_list = detection_result.pose_landmarks
+  annotated_image = np.copy(rgb_image)
 
-#   # Loop through the detected poses to visualize.
-#   for idx in range(len(pose_landmarks_list)):
-#     pose_landmarks = pose_landmarks_list[idx]
+  # Loop through the detected poses to visualize.
+  for idx in range(len(pose_landmarks_list)):
+    pose_landmarks = pose_landmarks_list[idx]
 
-#     # Draw the pose landmarks.
-#     pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
-#     pose_landmarks_proto.landmark.extend([
-#       landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in pose_landmarks
-#     ])
-#     solutions.drawing_utils.draw_landmarks(
-#       annotated_image,
-#       pose_landmarks_proto,
-#       solutions.pose.POSE_CONNECTIONS,
-#       solutions.drawing_styles.get_default_pose_landmarks_style())
-#   return annotated_image
+    # Draw the pose landmarks.
+    pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+    pose_landmarks_proto.landmark.extend([
+      landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in pose_landmarks
+    ])
+    solutions.drawing_utils.draw_landmarks(
+      annotated_image,
+      pose_landmarks_proto,
+      solutions.pose.POSE_CONNECTIONS,
+      solutions.drawing_styles.get_default_pose_landmarks_style())
+  return annotated_image
 
 # MARGIN = 10  # pixels
 # FONT_SIZE = 1
@@ -120,9 +120,158 @@ processor = LandmarkProcessor(
 # LPOSE = [13, 15, 17, 19, 21]
 # RPOSE = [14, 16, 18, 20, 22]
 
-# pose_land, hand_land, handedness = processor.get_landmarks(img)
+images = []
+images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_h_3.jpg'))
+images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_e.jpg'))
+images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_l.jpg'))
+images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_l_2.jpg'))
+images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_o.jpg'))
 
+processor = LandmarkProcessor(
+    pose_landmarker="/Users/jon/development/university/sis/models/pose_landmarker_full.task",
+    hand_landmarker="/Users/jon/development/university/sis/models/hand_landmarker.task"
+)
 
+HAND_INDICES = list(range(0, 21))
+POSE_INDICES = [13, 15, 17, 19, 21, 14, 16, 18, 20, 22]
 
+prediction_data = []
 
+for i in range(len(images)):
+    prediction_data.append([])
 
+    image = images[i]
+    cv.cvtColor(image, cv.COLOR_BGR2RGB)
+
+    pose_land, hand_land, handedness = processor.get_landmarks(images[i])
+
+    print(i)
+
+    if hand_land != [] and len(hand_land) >= 1:
+        rhand = {
+            "x": [hand_land[0][i].x for i in HAND_INDICES], 
+            "y": [hand_land[0][i].y for i in HAND_INDICES], 
+            "z": [hand_land[0][i].z for i in HAND_INDICES]
+        }
+
+        lhand = {
+            "x": list(np.empty(len(HAND_INDICES))),
+            "y": list(np.empty(len(HAND_INDICES))),
+            "z": list(np.empty(len(HAND_INDICES))),
+        }
+    else: 
+        rhand = {
+            "x": list(np.empty(len(HAND_INDICES))),
+            "y": list(np.empty(len(HAND_INDICES))),
+            "z": list(np.empty(len(HAND_INDICES))),
+        }
+
+        lhand = {
+            "x": list(np.empty(len(HAND_INDICES))),
+            "y": list(np.empty(len(HAND_INDICES))),
+            "z": list(np.empty(len(HAND_INDICES))),
+        }
+
+    pose = {
+        "x": [pose_land[i].x for i in POSE_INDICES], 
+        "y": [pose_land[i].y for i in POSE_INDICES], 
+        "z": [pose_land[i].z for i in POSE_INDICES]
+    }
+
+    prediction_data[i].extend(rhand["x"])
+    prediction_data[i].extend(lhand["x"])
+    prediction_data[i].extend(pose["x"])
+
+    prediction_data[i].extend(rhand["y"])
+    prediction_data[i].extend(lhand["y"])
+    prediction_data[i].extend(pose["y"])
+
+    prediction_data[i].extend(rhand["z"])
+    prediction_data[i].extend(lhand["z"])
+    prediction_data[i].extend(pose["z"])
+
+import tensorflow as tf
+prediction_data = tf.cast(prediction_data, tf.float32)
+
+interpreter = tf.lite.Interpreter(model_path=f"/Users/jon/development/university/sis/models/v0_0_1_model_export_tflite/asl_model.tflife")
+interpreter.allocate_tensors()
+
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+print(input_details)
+
+interpreter.set_tensor(input_details[0]['index'], [prediction_data[3]])
+interpreter.invoke()
+
+output = interpreter.get_tensor(output_details[0]['index'])
+
+letters = [
+   " ",
+   "!",
+   '#',
+   '$',	
+    '%',
+    '&',
+    '\'',
+    '(',
+    ')',
+    '*',
+    '+',
+    ',',
+    '-',
+    '.',
+    '/',
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    ':',
+    ';',
+    '=',
+    '?',
+    '@',
+    '[',
+    '_',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
+    '~',
+]
+
+output_str = ""
+
+for letter in output:
+   actual_ascii = letters[list(letter).index(1)]
+   output_str += actual_ascii
+
+# print(output_str)
