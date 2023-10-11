@@ -49,7 +49,9 @@ class LandmarkProcessor:
         
         # [result[0].pose_landmarks[0][landmark] for landmark in pose_desired_landmarks_indices]
         filtered_pose_landmarks = pose_landmarks.pose_landmarks[0]
-        filtered_hand_landmarks = [[]]
+        filtered_hand_landmarks = []
+
+        print(hand_landmarks)
 
         for hand in hand_landmarks.hand_landmarks:
             filtered_hand_landmarks = filtered_hand_landmarks + [hand]
