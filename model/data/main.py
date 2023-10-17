@@ -132,6 +132,9 @@ processor = LandmarkProcessor(
 
 HAND_INDICES = list(range(0, 21))
 POSE_INDICES = [13, 15, 17, 19, 21, 14, 16, 18, 20, 22]
+FACE_INDICES = [0, 61, 185, 40, 39, 37, 267, 269, 270, 409, 291, 146, 91, 181, 84, 17, 314, 
+                405, 321, 375, 78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 95, 88, 178, 87, 14, 317,
+                402, 318, 324, 308]
 
 prediction_data = []
 
@@ -176,20 +179,37 @@ for i in range(len(images)):
         "y": [pose_land[i].y for i in POSE_INDICES], 
         "z": [pose_land[i].z for i in POSE_INDICES]
     }
-    # if include: 
-    prediction_data[i].extend(rhand["x"])
-    prediction_data[i].extend(lhand["x"])
-    prediction_data[i].extend(pose["x"])
 
-    prediction_data[i].extend(rhand["y"])
-    prediction_data[i].extend(lhand["y"])
-    prediction_data[i].extend(pose["y"])
+    if face_land != []:
+        face = {
+            "x": [face_land[i].x for i in FACE_INDICES], 
+            "y": [face_land[i].y for i in FACE_INDICES], 
+            "z": [face_land[i].z for i in FACE_INDICES]
+        }
+    else:
+        face = {
+            "x": list(np.empty(len(FACE_INDICES))),
+            "y": list(np.empty(len(FACE_INDICES))),
+            "z": list(np.empty(len(FACE_INDICES))),
+        }
 
-    prediction_data[i].extend(rhand["z"])
-    prediction_data[i].extend(lhand["z"])
-    prediction_data[i].extend(pose["z"])
+    if include:
+        prediction_data[i].extend(face["x"])
+        prediction_data[i].extend(lhand["x"])
+        prediction_data[i].extend(rhand["x"])
+        prediction_data[i].extend(pose["x"])
 
-# prediction_data = [x for x in prediction_data if x != []]
+        prediction_data[i].extend(face["y"])
+        prediction_data[i].extend(lhand["y"])
+        prediction_data[i].extend(rhand["y"])
+        prediction_data[i].extend(pose["y"])
+
+        prediction_data[i].extend(face["z"])
+        prediction_data[i].extend(lhand["z"])
+        prediction_data[i].extend(rhand["z"])
+        prediction_data[i].extend(pose["z"])
+
+prediction_data = [x for x in prediction_data if x != []]
 
 import tensorflow as tf
 import json
