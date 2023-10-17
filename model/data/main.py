@@ -126,7 +126,8 @@ for i in range(1, 187):
 
 processor = LandmarkProcessor(
     pose_landmarker="/Users/jon/development/university/sis/models/pose_landmarker_full.task",
-    hand_landmarker="/Users/jon/development/university/sis/models/hand_landmarker.task"
+    hand_landmarker="/Users/jon/development/university/sis/models/hand_landmarker.task",
+    face_landmarker="/Users/jon/development/university/sis/models/face_landmarker.task"
 )
 
 HAND_INDICES = list(range(0, 21))
@@ -140,7 +141,7 @@ for i in range(len(images)):
     image = images[i]
     cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
-    pose_land, hand_land, handedness = processor.get_landmarks(images[i])
+    pose_land, hand_land, handedness, face_land = processor.get_landmarks(images[i])
     include = False
     if hand_land != [] and len(hand_land) >= 1:
         include = True
