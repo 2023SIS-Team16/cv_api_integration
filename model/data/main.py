@@ -121,11 +121,8 @@ def draw_pose_landmarks_on_image(rgb_image, detection_result):
 # RPOSE = [14, 16, 18, 20, 22]
 
 images = []
-images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_h_3.jpg'))
-images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_e.jpg'))
-images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_l.jpg'))
-images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_l_2.jpg'))
-images.append(cv.imread('/Users/jon/development/university/sis/test_images/spell_test_1_o.jpg'))
+for i in range(1, 187):
+    images.append(cv.imread(f"/Users/jon/development/university/sis/videos/hello_asl_slow_6_alt/frame_{i:04}.png"))
 
 processor = LandmarkProcessor(
     pose_landmarker="/Users/jon/development/university/sis/models/pose_landmarker_full.task",
@@ -144,15 +141,16 @@ for i in range(len(images)):
     cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
     pose_land, hand_land, handedness = processor.get_landmarks(images[i])
-
-    print(i)
-
+    include = False
     if hand_land != [] and len(hand_land) >= 1:
+        include = True
         rhand = {
             "x": [hand_land[0][i].x for i in HAND_INDICES], 
             "y": [hand_land[0][i].y for i in HAND_INDICES], 
             "z": [hand_land[0][i].z for i in HAND_INDICES]
         }
+
+        print(i)
 
         lhand = {
             "x": list(np.empty(len(HAND_INDICES))),
@@ -177,7 +175,7 @@ for i in range(len(images)):
         "y": [pose_land[i].y for i in POSE_INDICES], 
         "z": [pose_land[i].z for i in POSE_INDICES]
     }
-
+    # if include: 
     prediction_data[i].extend(rhand["x"])
     prediction_data[i].extend(lhand["x"])
     prediction_data[i].extend(pose["x"])
