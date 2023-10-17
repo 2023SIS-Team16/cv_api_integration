@@ -188,88 +188,41 @@ for i in range(len(images)):
     prediction_data[i].extend(lhand["z"])
     prediction_data[i].extend(pose["z"])
 
+# prediction_data = [x for x in prediction_data if x != []]
+
 import tensorflow as tf
+import json
+
 prediction_data = tf.cast(prediction_data, tf.float32)
 
-interpreter = tf.lite.Interpreter(model_path=f"/Users/jon/development/university/sis/models/v0_0_1_model_export_tflite/asl_model.tflife")
-interpreter.allocate_tensors()
+# interpreter = tf.lite.Interpreter(model_path=f"/Users/jon/development/university/sis/models/v0_0_1_model_export_tflite/asl_model.tflife")
+interpreter = tf.lite.Interpreter(model_path=f"/Users/jon/development/university/sis/models/v0_0_1_model_export_tflite/asl_model.tflite")
+# interpreter.allocate_tensors()
 
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
+chars_path = "/Users/jon/development/university/sis/character_to_prediction_index.json"
 
-print(input_details)
+with open(chars_path, "r") as f:
+   character_map = json.load(f)
+   rev_character_map = {j:i for i,j in character_map.items()}
 
-interpreter.set_tensor(input_details[0]['index'], [prediction_data[3]])
-interpreter.invoke()
+found_signatures = list(interpreter.get_signature_list().keys())
+REQUIRED_SIGNATURE = "serving_default"
+REQUIRED_OUTPUT = "outputs"
 
-output = interpreter.get_tensor(output_details[0]['index'])
+if REQUIRED_SIGNATURE not in found_signatures:
+    raise Exception('Required input signature not found.')
 
-letters = [
-   " ",
-   "!",
-   '#',
-   '$',	
-    '%',
-    '&',
-    '\'',
-    '(',
-    ')',
-    '*',
-    '+',
-    ',',
-    '-',
-    '.',
-    '/',
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    ':',
-    ';',
-    '=',
-    '?',
-    '@',
-    '[',
-    '_',
-    'a',
-    'b',
-    'c',
-    'd',
-    'e',
-    'f',
-    'g',
-    'h',
-    'i',
-    'j',
-    'k',
-    'l',
-    'm',
-    'n',
-    'o',
-    'p',
-    'q',
-    'r',
-    's',
-    't',
-    'u',
-    'v',
-    'w',
-    'x',
-    'y',
-    'z',
-    '~',
-]
+prediction_fn = interpreter.get_signature_runner("serving_default")
+output = prediction_fn(inputs=np.array(prediction_data[0]))
 
-output_str = ""
+prediction_str = "".join([rev_character_map.get(s, "") for s in np.argmax(output[REQUIRED_OUTPUT], axis=1)])
+print(prediction_str)
+# input_details = interpreter.get_input_details()
+# output_details = interpreter.get_output_details()
 
-for letter in output:
-   actual_ascii = letters[list(letter).index(1)]
-   output_str += actual_ascii
+# print(input_details)
 
-# print(output_str)
+# interpreter.set_tensor(input_details[0]['index'], [prediction_data[3]])
+# interpreter.invoke()
+
+# output = interpreter.get_tensor(output_details[0]['index'])
