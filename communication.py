@@ -1,7 +1,6 @@
 import requests
 import json
-
-#import socketio from main here
+import main
 
 #For communicating with NLP over HTTP requests
 request_url = "http://127.0.0.1:5000/parse_text"
@@ -21,7 +20,17 @@ class Communication:
         json_input = json.dumps(input)
 
         response = requests.get(request_url, json=json_input)
-        print(response)
+        print(response.content)
+        content = json.loads(response.content)
+        print(content)
+
+        #Truncate string if there's a response
+        string = string[content['index']:]
+        
+        if response.content['text']:
+            print("Message emitted")
+            main.emit_message(response.content['text'])
+
 
     def upload_to_interface(self, text_to_display):
         print("Uploading text to the HoloLens")
