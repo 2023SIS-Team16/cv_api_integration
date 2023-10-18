@@ -35,5 +35,10 @@ def received_image(encoded_image):
     cv.imwrite(savePath, gray)
     emit("response", {"data": "image received"})
 
+#NEW: Aims to emit a socketio message after the NLP has completed translation
+def emit_message(message):
+    print("Message Sneding Test")
+    socketio.emit("translation", message)
+
 if __name__ == "__main__":
     socketio.run(app, debug=True, port=8765, host='0.0.0.0')
